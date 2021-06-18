@@ -35,8 +35,7 @@ function newBook(book) {
     return div;
 }
 
-function verifyQuantity(id, i) {
-
+function ConsultarQuantidade(id, i) {
     fetch('http://localhost:3000/product/'+id)
         .then((data) => {
             if (data.ok) {
@@ -59,24 +58,7 @@ function verifyQuantity(id, i) {
     );
 }
 
-function calculateShipping(id, cep) {
-    fetch('http://localhost:3000/shipping/' + cep)
-        .then((data) => {
-            if (data.ok) {
-                return data.json();
-            }
-            throw data.statusText;
-        })
-        .then((data) => {
-            swal('Frete', `O frete é: R$${data.value.toFixed(2)}`, 'success');
-        })
-        .catch((err) => {
-            swal('Erro', 'Erro ao consultar frete', 'error');
-            console.error(err);
-        });
-}
-
-function updateStock(id){
+function AtualizarEstoque(id){
     fetch('http://localhost:3000/product/' + id + '/buy')
         .then((data) => {
             if(data.ok){
@@ -93,6 +75,24 @@ function updateStock(id){
         .catch((err) => {
             swal('Erro', 'Ocorreu um erro ao prosseguir com a compra: ' + err, 'error');
         })
+}
+
+function calculateShipping(id, cep) {
+    fetch('http://localhost:3000/shipping/' + cep)
+        .then((data) => {
+            if (data.ok) {
+                return data.json();
+            }
+            throw data.statusText;
+        })
+        .then((data) => {
+            swal('Frete', `O frete é: R$${data.value.toFixed(2)}`, 'success');
+        })
+        .catch((err) => {
+            swal('Erro', 'Erro ao consultar frete', 'error');
+            console.error(err);
+        }
+    );
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -112,8 +112,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 for(i = 0; i < data.length; i++){
-                    verifyQuantity(data[i]["id"], i)
+                    ConsultarQuantidade(data[i]["id"], i)
                 }
+
+                document.querySelectorAll('.button-buy').forEach((btn) => {
+                    btn.addEventListener('click', (e) => {
+                        const idProduct = e.target.getAttribute('data-id');
+                        
+                        AtualizarEstoque(idProduct);
+                    });
+                });
                 
                 document.querySelectorAll('.button-shipping').forEach((btn) => {
                     btn.addEventListener('click', (e) => {
@@ -121,15 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         const cep = document.querySelector(`.book[data-id="${id}"] input`).value;
                         calculateShipping(id, cep);
                     });
-                });
-
-                document.querySelectorAll('.button-buy').forEach((btn) => {
-                    btn.addEventListener('click', (e) => {
-                        const idProduct = e.target.getAttribute('data-id');
-                        
-                        updateStock(idProduct);
-                    });
-                });
+                });              
             }
         })
         .catch((err) => {
